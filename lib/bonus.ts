@@ -1,0 +1,209 @@
+import { getMatchups } from "./sleeper";
+import type {
+  BonusLeaders,
+  FinalPlacements,
+  SleeperBracketMatch,
+  Team,
+  WeeklyScore,
+} from "./types";
+
+/**
+ * Walks matchup weeks 1..upToWeek and flattens them into per-team weekly
+ * scores with win/loss/tie decisions. Weeks with no data (pre-season, or a
+ * bye) simply contribute nothing — callers must not treat that as a loss.
+ *
+ * We compute win/loss/points straight from matchup data rather than trusting
+ * roster.settings.fpts, since that's the only way to be sure playoff weeks
+ * (15+) are included and correctly attributed per the league's top-6 bracket.
+ */
+export async function getWeeklyScores(upToWeek: number): Promise<WeeklyScore[]> {
+  const weeks = Array.from({ length: Math.max(upToWeek, 0) }, (_, i) => i + 1);
+  const perWeek = await Promise.all(weeks.map((w) => getMatchups(w)));
+
+  const scores: WeeklyScore[] = [];
+
+  perWeek.forEach((entries, idx) => {
+    const week = idx + 1;
+    if (!entries || entries.length === 0) return;
+
+    const byMatchupId = new Map<number, typeof entries>();
+    for (const entry of entries) {
+      if (entry.matchup_id == null) continue;
+      const group = byMatchupId.get(entry.matchup_id) ?? [];
+      group.push(entry);
+      byMatchupId.set(entry.matchup_id, group);
+    }
+
+    for (const group of byMatchupId.values()) {
+      if (group.length === 2) {
+        const [a, b] = group;
+        const aPts = a.points ?? 0;
+        const bPts = b.points ?? 0;
+        const tie = aPts === bPts;
+        scores.push({
+          rosterId: a.roster_id,
+          week,
+          points: aPts,
+          won: tie ? null : aPts > bPts,
+        });
+        scores.push({
+          rosterId: b.roster_id,
+          week,
+          points: bPts,
+          won: tie ? null : bPts > aPts,
+        });
+      } else {
+        // Bye / unmatched entry (can happen in an uneven bracket week) —
+        // points still count, but there's no win/loss decision to record.
+        for (const entry of group) {
+          scores.push({
+            rosterId: entry.roster_id,
+            week,
+            points: entry.points ?? 0,
+            won: null,
+          });
+        }
+      }
+    }
+  });
+
+  return scores;
+}
+
+export function computeMostPoints(scores: WeeklyScore[]) {
+  const totals = new Map<number, number>();
+  for (const s of scores) {
+    totals.set(s.rosterId, (totals.get(s.rosterId) ?? 0) + s.points);
+  }
+  let leader: { rosterId: number | null; value: number } = {
+    rosterId: null,
+    value: 0,
+  };
+  for (const [rosterId, value] of totals) {
+    if (value > leader.value || leader.rosterId === null) {
+      leader = { rosterId, value };
+    }
+  }
+  return leader;
+}
+
+export function computeHighWeek(scores: WeeklyScore[]) {
+  let leader: { rosterId: number | null; value: number; week: number | null } = {
+    rosterId: null,
+    value: 0,
+    week: null,
+  };
+  for (const s of scores) {
+    if (s.points > leader.value || leader.rosterId === null) {
+      leader = { rosterId: s.rosterId, value: s.points, week: s.week };
+    }
+  }
+  return leader;
+}
+
+/** Longest streak of consecutive wins anywhere in the season, per team, then the league max. */
+export function computeLongestWinStreak(scores: WeeklyScore[]) {
+  const byTeam = new Map<number, WeeklyScore[]>();
+  for (const s of scores) {
+    if (s.won === null) continue; // ties/byes break a streak but aren't losses
+    const list = byTeam.get(s.rosterId) ?? [];
+    list.push(s);
+    byTeam.set(s.rosterId, list);
+  }
+
+  let leader = { rosterId: null as number | null, length: 0 };
+
+  for (const [rosterId, list] of byTeam) {
+    list.sort((a, b) => a.week - b.week);
+    let current = 0;
+    let best = 0;
+    for (const s of list) {
+      current = s.won ? current + 1 : 0;
+      best = Math.max(best, current);
+    }
+    if (best > leader.length) {
+      leader = { rosterId, length: best };
+    }
+  }
+
+  return leader;
+}
+
+/** Current (most-recent) streak per team, e.g. "W3" / "L1" / "-" for the standings table. */
+export function computeCurrentStreaks(scores: WeeklyScore[]): Map<number, string> {
+  const byTeam = new Map<number, WeeklyScore[]>();
+  for (const s of scores) {
+    const list = byTeam.get(s.rosterId) ?? [];
+    list.push(s);
+    byTeam.set(s.rosterId, list);
+  }
+
+  const result = new Map<number, string>();
+  for (const [rosterId, list] of byTeam) {
+    list.sort((a, b) => b.week - a.week); // newest first
+    const decided = list.filter((s) => s.won !== null);
+    if (decided.length === 0) {
+      result.set(rosterId, "-");
+      continue;
+    }
+    const latest = decided[0].won;
+    let count = 0;
+    for (const s of decided) {
+      if (s.won === latest) count++;
+      else break;
+    }
+    result.set(rosterId, `${latest ? "W" : "L"}${count}`);
+  }
+  return result;
+}
+
+/** Best record comes straight from Sleeper's own roster settings (wins/losses/ties), which already include playoffs. */
+export function computeBestRecord(teams: Team[]) {
+  let leader = { rosterId: null as number | null, wins: 0, losses: 0, ties: 0 };
+  for (const t of teams) {
+    const better =
+      leader.rosterId === null ||
+      t.wins > leader.wins ||
+      (t.wins === leader.wins &&
+        t.fptsFor >
+          (teams.find((x) => x.rosterId === leader.rosterId)?.fptsFor ?? 0));
+    if (better) {
+      leader = { rosterId: t.rosterId, wins: t.wins, losses: t.losses, ties: t.ties };
+    }
+  }
+  return leader;
+}
+
+export function getBonusLeaders(
+  scores: WeeklyScore[],
+  teams: Team[]
+): BonusLeaders {
+  const weeksComputed = new Set(scores.map((s) => s.week)).size;
+
+  return {
+    mostPoints: computeMostPoints(scores),
+    bestRecord: computeBestRecord(teams),
+    winStreak: computeLongestWinStreak(scores),
+    highWeek: computeHighWeek(scores),
+    weeksComputed,
+  };
+}
+
+/**
+ * Reads final placements off Sleeper's winners bracket. The championship
+ * game is the entry with p=1 (winner=1st, loser=2nd); the third-place game
+ * is p=3 (winner=3rd). Until those games have a recorded winner, placements
+ * stay null and the UI shows "TBD — decided in playoffs".
+ */
+export function resolveFinalPlacements(
+  bracket: SleeperBracketMatch[]
+): FinalPlacements {
+  const championship = bracket.find((m) => m.p === 1);
+  const thirdPlaceGame = bracket.find((m) => m.p === 3);
+
+  return {
+    first: championship?.w ?? null,
+    second: championship?.l ?? null,
+    third: thirdPlaceGame?.w ?? null,
+  };
+}
