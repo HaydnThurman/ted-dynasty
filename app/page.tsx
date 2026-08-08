@@ -52,7 +52,7 @@ export default async function HomePage() {
               {LEAGUE_NAME}
             </h1>
             <p className="mt-3 max-w-xl text-ink-300">
-              Twelve owners. One burrito-fueled dynasty. Every win, streak, and
+              Ten owners. One burrito-fueled dynasty. Every win, streak, and
               bragging right is tracked live — Ted is watching.
             </p>
 

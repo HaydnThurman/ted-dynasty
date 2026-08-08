@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Oswald, Inter } from "next/font/google";
 import "./globals.css";
-import { LEAGUE_NAME, THEME } from "@/config";
+import { LEAGUE_NAME, NUM_TEAMS, THEME } from "@/config";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 
@@ -20,8 +20,7 @@ const sans = Inter({
 
 export const metadata: Metadata = {
   title: `${LEAGUE_NAME} | Fantasy Football`,
-  description:
-    "TED DYNASTY — a 12-team fantasy football dynasty league. Live standings, bonus tracker, and draft countdown, powered by Sleeper.",
+  description: `TED DYNASTY — a ${NUM_TEAMS}-team fantasy football dynasty league. Live standings, bonus tracker, and draft countdown, powered by Sleeper.`,
   icons: {
     icon: "/ted-49ers-transparent.png",
   },

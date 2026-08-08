@@ -15,7 +15,7 @@ export const LEAGUE_ID = "1391586050798796800";
 export const SEASON = "2026";
 
 export const BUY_IN = 100;
-export const NUM_TEAMS = 12;
+export const NUM_TEAMS = 10;
 export const POOL_TOTAL = BUY_IN * NUM_TEAMS;
 
 /** Public Google Form URL (the "Send" / viewform link — not the /edit link). */
@@ -64,36 +64,40 @@ export interface Payout {
   type: "final" | "live";
 }
 
+// Dollar amounts derive from pct * POOL_TOTAL so they can never drift out of
+// sync with the pool (e.g. when NUM_TEAMS changes).
+const share = (pct: number) => Math.round(POOL_TOTAL * (pct / 100));
+
 export const PAYOUTS: Payout[] = [
-  { key: "first", label: "1st Place", pct: 50, amount: 600, type: "final" },
-  { key: "second", label: "2nd Place", pct: 20, amount: 240, type: "final" },
-  { key: "third", label: "3rd Place", pct: 10, amount: 120, type: "final" },
+  { key: "first", label: "1st Place", pct: 50, amount: share(50), type: "final" },
+  { key: "second", label: "2nd Place", pct: 20, amount: share(20), type: "final" },
+  { key: "third", label: "3rd Place", pct: 10, amount: share(10), type: "final" },
   {
     key: "most_points",
     label: "Most Points Scored",
     pct: 5,
-    amount: 60,
+    amount: share(5),
     type: "live",
   },
   {
     key: "best_record",
     label: "Best Record",
     pct: 5,
-    amount: 60,
+    amount: share(5),
     type: "live",
   },
   {
     key: "win_streak",
     label: "Longest Win Streak",
     pct: 5,
-    amount: 60,
+    amount: share(5),
     type: "live",
   },
   {
     key: "high_week",
     label: "Most Points, One Week",
     pct: 5,
-    amount: 60,
+    amount: share(5),
     type: "live",
   },
 ];
