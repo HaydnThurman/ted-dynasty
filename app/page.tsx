@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   DRAFT_DATE,
-  FORM_URL,
   LEAGUE_NAME,
   PLAYOFF_WEEK_START,
   POOL_TOTAL,
   SEASON,
+  SLEEPER_INVITE_URL,
 } from "@/config";
 import { getSiteData, teamByRosterId } from "@/lib/data";
 import { Countdown } from "@/components/Countdown";
@@ -58,7 +58,7 @@ export default async function HomePage() {
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <a
-                href={FORM_URL}
+                href={SLEEPER_INVITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full bg-primary px-6 py-3 font-display text-sm font-bold uppercase tracking-wide text-ink-900 shadow-glow transition-transform hover:scale-105"

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LEAGUE_NAME } from "@/config";
+import { LEAGUE_NAME, SLEEPER_INVITE_URL } from "@/config";
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -51,12 +51,14 @@ export function NavBar() {
               </Link>
             );
           })}
-          <Link
-            href="/join"
+          <a
+            href={SLEEPER_INVITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-full bg-primary px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-ink-900 transition-transform hover:scale-105"
           >
             Join
-          </Link>
+          </a>
         </nav>
 
         <button
@@ -96,13 +98,15 @@ export function NavBar() {
               </Link>
             );
           })}
-          <Link
-            href="/join"
+          <a
+            href={SLEEPER_INVITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={() => setOpen(false)}
             className="mt-1 rounded-md bg-primary px-3 py-2 text-center font-display text-sm font-bold uppercase tracking-wide text-ink-900"
           >
             Join
-          </Link>
+          </a>
         </nav>
       )}
     </header>

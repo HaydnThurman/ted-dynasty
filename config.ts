@@ -18,11 +18,7 @@ export const BUY_IN = 100;
 export const NUM_TEAMS = 10;
 export const POOL_TOTAL = BUY_IN * NUM_TEAMS;
 
-/** Public Google Form URL (the "Send" / viewform link — not the /edit link). */
-export const FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLScatqI_eODUxKZjj-HiY-l2W4TsqHlAaie967tmnBpvzPbnhA/viewform";
-
-/** Sleeper league invite link, shown on the Join page as a secondary CTA. */
+/** Sleeper league invite link — the sole way to join the league. */
 export const SLEEPER_INVITE_URL = "https://sleeper.com/i/Y288Yokmq3BKN";
 
 /** ISO 8601 with offset — Sept 3, 2026, 7:30 PM Mountain (MDT = UTC-6). */
