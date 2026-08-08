@@ -113,9 +113,7 @@ export const MEMBERS: Member[] = [
   { name: "Uncle Drew", coOwner: "Nico Flocchini" },
   { name: "Quinn Breeden" },
   { name: "Chuck Breeden" },
-  { name: "Cole Bricca" },
   { name: "Ethan Goode" },
-  { name: "Ethan Goode's Dad" },
   { name: "Jason Bissey" },
 ];
 
