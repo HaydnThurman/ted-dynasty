@@ -38,7 +38,9 @@ export default function RulesPage() {
               <div>
                 <p className="font-semibold text-ink-100">{p.label}</p>
                 <p className="text-xs uppercase tracking-wide text-ink-500">
-                  {p.type === "final" ? "Decided in playoffs" : "Live, updates weekly"}
+                  {p.type === "final"
+                    ? "Decided in playoffs"
+                    : `Live, locks after week ${REGULAR_SEASON_WEEKS}`}
                 </p>
               </div>
               <p className="font-display font-bold text-primary">
@@ -56,9 +58,10 @@ export default function RulesPage() {
         <p className="mt-2 text-ink-300">
           Regular season runs weeks 1&ndash;{REGULAR_SEASON_WEEKS}. Playoffs
           start week {PLAYOFF_WEEK_START} with the top 6 teams. 1st, 2nd, and
-          3rd place are decided by the playoff bracket &mdash; separate from
-          the Best Record bonus, which is a regular-season-plus-playoffs race
-          of its own.
+          3rd place are decided by the playoff bracket. The two regular-season
+          bonuses (1st place and most points) lock after week{" "}
+          {REGULAR_SEASON_WEEKS} &mdash; playoff games don&apos;t count toward
+          them.
         </p>
       </Card>
 

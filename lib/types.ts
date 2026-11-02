@@ -97,9 +97,7 @@ export interface WeeklyScore {
 
 export interface BonusLeaders {
   mostPoints: { rosterId: number | null; value: number };
-  bestRecord: { rosterId: number | null; wins: number; losses: number; ties: number };
-  winStreak: { rosterId: number | null; length: number };
-  highWeek: { rosterId: number | null; value: number; week: number | null };
+  regSeasonChamp: { rosterId: number | null; wins: number; losses: number; ties: number };
   weeksComputed: number;
 }
 

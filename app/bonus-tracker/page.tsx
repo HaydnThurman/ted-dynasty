@@ -1,4 +1,4 @@
-import { PAYOUTS, POOL_TOTAL } from "@/config";
+import { PAYOUTS, POOL_TOTAL, REGULAR_SEASON_WEEKS } from "@/config";
 import { SectionHeading } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { LastUpdated } from "@/components/LastUpdated";
@@ -18,7 +18,7 @@ export default async function BonusTrackerPage() {
       <SectionHeading
         eyebrow="Where the money's going"
         title="Bonus Tracker"
-        subtitle="Seven ways to cash. Four update live off Sleeper every week, three get decided in the playoffs."
+        subtitle={`Five ways to cash. Two update live off Sleeper and lock after week ${REGULAR_SEASON_WEEKS}, three get decided in the playoffs.`}
       />
       <div className="mb-6">
         <LastUpdated />
@@ -68,55 +68,19 @@ export default async function BonusTrackerPage() {
               );
             }
 
-            if (payout.key === "best_record") {
-              const rec = bonusLeaders?.bestRecord;
-              return (
-                <BonusCard
-                  key={payout.key}
-                  label={payout.label}
-                  amount={payout.amount}
-                  pct={payout.pct}
-                  team={teamByRosterId(teams, rec?.rosterId ?? null)}
-                  valueLabel={
-                    rec
-                      ? `${rec.wins}-${rec.losses}${rec.ties ? `-${rec.ties}` : ""}`
-                      : undefined
-                  }
-                  tbdReason="No games played yet"
-                />
-              );
-            }
-
-            if (payout.key === "win_streak") {
-              const streak = bonusLeaders?.winStreak;
-              return (
-                <BonusCard
-                  key={payout.key}
-                  label={payout.label}
-                  amount={payout.amount}
-                  pct={payout.pct}
-                  team={teamByRosterId(teams, streak?.rosterId ?? null)}
-                  valueLabel={
-                    streak
-                      ? `${streak.length} straight win${streak.length === 1 ? "" : "s"}`
-                      : undefined
-                  }
-                  tbdReason="No streaks yet"
-                />
-              );
-            }
-
-            // high_week
-            const hw = bonusLeaders?.highWeek;
+            // reg_season_champ
+            const rec = bonusLeaders?.regSeasonChamp;
             return (
               <BonusCard
                 key={payout.key}
                 label={payout.label}
                 amount={payout.amount}
                 pct={payout.pct}
-                team={teamByRosterId(teams, hw?.rosterId ?? null)}
+                team={teamByRosterId(teams, rec?.rosterId ?? null)}
                 valueLabel={
-                  hw ? `${hw.value.toFixed(1)} pts (Week ${hw.week})` : undefined
+                  rec
+                    ? `${rec.wins}-${rec.losses}${rec.ties ? `-${rec.ties}` : ""}`
+                    : undefined
                 }
                 tbdReason="No games played yet"
               />

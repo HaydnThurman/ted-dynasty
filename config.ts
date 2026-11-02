@@ -14,7 +14,7 @@ export const LEAGUE_ID = "1391586050798796800";
 
 export const SEASON = "2026";
 
-export const BUY_IN = 100;
+export const BUY_IN = 50;
 export const NUM_TEAMS = 10;
 export const POOL_TOTAL = BUY_IN * NUM_TEAMS;
 
@@ -47,10 +47,8 @@ export type PayoutKey =
   | "first"
   | "second"
   | "third"
-  | "most_points"
-  | "best_record"
-  | "win_streak"
-  | "high_week";
+  | "reg_season_champ"
+  | "most_points";
 
 export interface Payout {
   key: PayoutKey;
@@ -65,33 +63,19 @@ export interface Payout {
 const share = (pct: number) => Math.round(POOL_TOTAL * (pct / 100));
 
 export const PAYOUTS: Payout[] = [
-  { key: "first", label: "1st Place", pct: 50, amount: share(50), type: "final" },
+  { key: "first", label: "1st Place", pct: 60, amount: share(60), type: "final" },
   { key: "second", label: "2nd Place", pct: 20, amount: share(20), type: "final" },
   { key: "third", label: "3rd Place", pct: 10, amount: share(10), type: "final" },
   {
+    key: "reg_season_champ",
+    label: "1st Place, Regular Season",
+    pct: 5,
+    amount: share(5),
+    type: "live",
+  },
+  {
     key: "most_points",
-    label: "Most Points Scored",
-    pct: 5,
-    amount: share(5),
-    type: "live",
-  },
-  {
-    key: "best_record",
-    label: "Best Record",
-    pct: 5,
-    amount: share(5),
-    type: "live",
-  },
-  {
-    key: "win_streak",
-    label: "Longest Win Streak",
-    pct: 5,
-    amount: share(5),
-    type: "live",
-  },
-  {
-    key: "high_week",
-    label: "Most Points, One Week",
+    label: "Most Points, Regular Season",
     pct: 5,
     amount: share(5),
     type: "live",

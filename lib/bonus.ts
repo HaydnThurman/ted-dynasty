@@ -1,3 +1,4 @@
+import { REGULAR_SEASON_WEEKS } from "@/config";
 import { getMatchups } from "./sleeper";
 import type {
   BonusLeaders,
@@ -87,48 +88,6 @@ export function computeMostPoints(scores: WeeklyScore[]) {
   return leader;
 }
 
-export function computeHighWeek(scores: WeeklyScore[]) {
-  let leader: { rosterId: number | null; value: number; week: number | null } = {
-    rosterId: null,
-    value: 0,
-    week: null,
-  };
-  for (const s of scores) {
-    if (s.points > leader.value || leader.rosterId === null) {
-      leader = { rosterId: s.rosterId, value: s.points, week: s.week };
-    }
-  }
-  return leader;
-}
-
-/** Longest streak of consecutive wins anywhere in the season, per team, then the league max. */
-export function computeLongestWinStreak(scores: WeeklyScore[]) {
-  const byTeam = new Map<number, WeeklyScore[]>();
-  for (const s of scores) {
-    if (s.won === null) continue; // ties/byes break a streak but aren't losses
-    const list = byTeam.get(s.rosterId) ?? [];
-    list.push(s);
-    byTeam.set(s.rosterId, list);
-  }
-
-  let leader = { rosterId: null as number | null, length: 0 };
-
-  for (const [rosterId, list] of byTeam) {
-    list.sort((a, b) => a.week - b.week);
-    let current = 0;
-    let best = 0;
-    for (const s of list) {
-      current = s.won ? current + 1 : 0;
-      best = Math.max(best, current);
-    }
-    if (best > leader.length) {
-      leader = { rosterId, length: best };
-    }
-  }
-
-  return leader;
-}
-
 /** Current (most-recent) streak per team, e.g. "W3" / "L1" / "-" for the standings table. */
 export function computeCurrentStreaks(scores: WeeklyScore[]): Map<number, string> {
   const byTeam = new Map<number, WeeklyScore[]>();
@@ -157,34 +116,41 @@ export function computeCurrentStreaks(scores: WeeklyScore[]): Map<number, string
   return result;
 }
 
-/** Best record comes straight from Sleeper's own roster settings (wins/losses/ties), which already include playoffs. */
-export function computeBestRecord(teams: Team[]) {
+/**
+ * Regular-season 1st place comes straight from Sleeper's roster record. That
+ * record only covers the regular season and includes the league's vs-median
+ * games (two results per week), which matchup data alone can't reproduce.
+ * Points-for breaks ties, matching Sleeper's standings order.
+ */
+export function computeRegSeasonChamp(teams: Team[]) {
   let leader = { rosterId: null as number | null, wins: 0, losses: 0, ties: 0 };
+  let leaderPts = 0;
+  const winPct = (w: number, t: number) => w + t / 2;
   for (const t of teams) {
     const better =
       leader.rosterId === null ||
-      t.wins > leader.wins ||
-      (t.wins === leader.wins &&
-        t.fptsFor >
-          (teams.find((x) => x.rosterId === leader.rosterId)?.fptsFor ?? 0));
+      winPct(t.wins, t.ties) > winPct(leader.wins, leader.ties) ||
+      (winPct(t.wins, t.ties) === winPct(leader.wins, leader.ties) &&
+        t.fptsFor > leaderPts);
     if (better) {
       leader = { rosterId: t.rosterId, wins: t.wins, losses: t.losses, ties: t.ties };
+      leaderPts = t.fptsFor;
     }
   }
   return leader;
 }
 
+/** Both cash bonuses are regular-season only — playoff weeks are ignored. */
 export function getBonusLeaders(
   scores: WeeklyScore[],
   teams: Team[]
 ): BonusLeaders {
-  const weeksComputed = new Set(scores.map((s) => s.week)).size;
+  const regSeason = scores.filter((s) => s.week <= REGULAR_SEASON_WEEKS);
+  const weeksComputed = new Set(regSeason.map((s) => s.week)).size;
 
   return {
-    mostPoints: computeMostPoints(scores),
-    bestRecord: computeBestRecord(teams),
-    winStreak: computeLongestWinStreak(scores),
-    highWeek: computeHighWeek(scores),
+    mostPoints: computeMostPoints(regSeason),
+    regSeasonChamp: computeRegSeasonChamp(teams),
     weeksComputed,
   };
 }

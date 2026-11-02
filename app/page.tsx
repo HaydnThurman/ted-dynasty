@@ -110,7 +110,7 @@ export default async function HomePage() {
               <AnimatedNumber value={POOL_TOTAL} prefix="$" />
             </p>
             <p className="mt-1 text-sm text-ink-400">
-              Winner take-most, seven ways to cash. See{" "}
+              Winner take-most, five ways to cash. See{" "}
               <Link href="/rules" className="underline hover:text-primary">
                 the full breakdown
               </Link>
